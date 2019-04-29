@@ -1,14 +1,23 @@
 # KAZI
-Fostering job formalization.
+## Fostering job formalization.
 
-Nearly two-thirds of global workforce in the informal economy
+---
 
-“The high incidence of informality in all its forms has multiple adverse consequences for workers, enterprises and societies and is a major challenge for the realization of decent work for all,” said Rafael Diez de Medina, the Director of the Department of Statistics at the UN International Labour Organization.
+Nearly two-thirds of the global workforce in the informal economy. According to the UN this high incidence has multiple adverse consequences for workers, enterprises and societies and is a major challenge for the realization of decent work for all.
 
-“For hundreds of millions of workers, informality means a lack of social protection, rights at work and decent working conditions, and for enterprises it means low productivity and lack of access to finance,” Florence Bonnet said.
+KAZI is a platform fostering not just the formalization of jobs but a medium creating jobs.
+
+For hundreds of millions of workers, informality means a lack of social protection, rights at work and decent working conditions. With KAZI these workers will be encourage to formalize their situation in order to access for a social protection, having in return a platform to find a job.
+
+## How it works
+Through Facebook Messenger people have access to search for a job or search for a worker.  
+KAZI connect customers with workers in a secure and trustable way using feedback and rating from both sides.  
+For informal workers KAZI offers the follow up and guide to formalize their status in order to access social protection.   
+For the already formalized workers KAZI offers education and training to improve or learn new skills.
 
 ## Features
-- A platform to offer jobs for formalized people
-- Provide a guide step by step for informal workforce to formalize their status
-- Ensure the collaboration between citizens
-- Provide quality education to improve or learn new skills
+- Search jobs according to location and skills.
+- Request for a job and select from a list of workers.
+- A guide step by step for informal workforce to formalize their status.
+- Training to improve or learn new skills.
+- Grade the service (work), worker and customer.

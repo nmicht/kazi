@@ -47,9 +47,11 @@ customer
 jobs
 - worker_id
 - customer_id
+- service_id
 - date
 - description
+- location
 - rating_worker_grade
 - rating_worker_description
-- rating_customer
+- rating_customer_grade
 - rating_customer_description

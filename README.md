@@ -21,3 +21,4 @@ For the already formalized workers KAZI offers education and training to improve
 - A guide step by step for informal workforce to formalize their status.
 - Training to improve or learn new skills.
 - Grade the service (work), worker and customer.
+- Standardize the

@@ -1,16 +1,16 @@
 {
   "workers": {
-    "alovelace": {
-      "id":,
-      "first_name":,
-      "last_name":,
-      "rating":,
-      "social_secure":,
-      "tax_id":,
-      "id_img_path":,
-      "address_img_path":,
-      "ss_img_path":,
-      "fb_user_id":,
-    },
+    "piero": {
+      "id": "pieroid",
+      "first_name": "piero",
+      "last_name": "divasto",
+      "rating": 5,
+      "social_secure": "12345",
+      "tax_id": "54321",
+      "id_img_path": "piero-id.jpg",
+      "address_img_path": "piero-address.jpg",
+      "ss_img_path": "piero-ss.jpg",
+      "fb_user_id": "1234",
+    }
   }
 }

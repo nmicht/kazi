@@ -1,21 +1,22 @@
 {
-  "s1": {
-    "id": "213123123",
-    "name": "painting",
-    "description": "asdasdas",
-    "price_per_unit": 123
-  },
-  "s2": {
-    "id": "213123123",
-    "name": "plumbing",
-    "description": "asdasdas",
-    "price_per_unit": 123
-  },
-  "s3": {
-    "id": "213123123",
-    "name": "electricity",
-    "description": "asdasdas",
-    "price_per_unit": 123
+  "services": {
+    "s1": {
+      "id": "213123123",
+      "name": "painting",
+      "description": "asdasdas",
+      "price_per_unit": 123
+    },
+    "s2": {
+      "id": "213123123",
+      "name": "plumbing",
+      "description": "asdasdas",
+      "price_per_unit": 123
+    },
+    "s3": {
+      "id": "213123123",
+      "name": "electricity",
+      "description": "asdasdas",
+      "price_per_unit": 123
+    }
   }
 }
-

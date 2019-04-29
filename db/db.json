@@ -36,5 +36,50 @@
         }
       }
     }
+  },
+  "customers": {
+    "c1": {
+      "id": "123",
+      "first_name": "First Name",
+      "last_name": "Last Name",
+      "fb_user_id": ""
+    }
+  },
+  "services": {
+    "s1": {
+      "id": "213123123",
+      "name": "painting",
+      "description": "asdasdas",
+      "price_per_unit": 123
+    },
+    "s2": {
+      "id": "213123123",
+      "name": "plumbing",
+      "description": "asdasdas",
+      "price_per_unit": 123
+    },
+    "s3": {
+      "id": "213123123",
+      "name": "electricity",
+      "description": "asdasdas",
+      "price_per_unit": 123
+    }
+  },
+  "trainings": {
+    "t1": {
+      "id": "123",
+      "name": "first training",
+      "description": "adasdasd"
+    },
+    "t2": {
+      "id": "1234",
+      "name": "second training",
+      "description": "adasdasd"
+    },
+    "t3": {
+      "id": "12345",
+      "name": "third training",
+      "description": "adasdasd"
+    }
   }
 }

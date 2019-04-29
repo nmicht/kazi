@@ -41,13 +41,11 @@ app.get('/api/workers', (req, res) => {
 app.post('/api/workers', (req, res) => {
 	firebaseHelper.firestore
 		.createNewDocument(db, workersCollection, req.body);
-	// let id = `${req.body.first_name}-${req.body.last_name}`
-	// let worker = db.collection('workers').doc().set(req.body);
 	res.send('Created new worker');
 });
 
 app.post('/api/workers/:id', (req, res) => {
-	let worker = db.collection('workers').doc(req.params.id).set(req.body, {merge: true});
+	let worker = db.collection(workersCollection).doc(req.params.id).set(req.body, {merge: true});
 	res.send('Worker updated');
 });
 
@@ -61,7 +59,7 @@ app.get('/api/services', (req, res) => {
 app.post('/api/services', (req, res) => {
 	let id = req.body.id
 	delete req.body.id;
-	let service = db.collection('services').doc(id).set(req.body, {merge: true});
+	let service = db.collection(servicesCollection).doc(id).set(req.body, {merge: true});
 	res.send('service created or updated');
 });
 
@@ -82,6 +80,30 @@ app.post('/api/customers', (req, res) => {
 	firebaseHelper.firestore
 		.createNewDocument(db, customersCollection, newCustomer);
 	res.json({ response: 'new customer created', new_customer: newCustomer });
+});
+
+// Find jobs
+app.get('/api/jobs', (req, res) => {
+	let filters = req.query
+	let data = []
+	let jobsRef = db.collection(jobCollection);
+	let query = jobsRef.where('service_id', '==', filters.service).get() // Add to filter by location
+	  .then(snapshot => {
+	    if (snapshot.empty) {
+				res.status(204).send('We do not have jobs for your criteria')
+	      return;
+	    }
+
+	    snapshot.forEach(doc => {
+				data.push(doc.data())
+				res.send(data)
+	    });
+	  })
+	  .catch(err => {
+	    console.log('Error getting documents', err);
+			res.status(500).send({ error: 'Something failed!' });
+	  });
+
 });
 
 // Create job

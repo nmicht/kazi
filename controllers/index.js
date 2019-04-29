@@ -3,7 +3,6 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const upload = multer();
-const axios = require('axios');
 const firebaseHelper = require('firebase-functions-helper');
 
 const app = express();
@@ -47,7 +46,7 @@ app.post('/api/workers', (req, res) => {
 });
 
 app.post('/api/workers/:id', (req, res) => {
-	let worker = db.collection('workers').doc(req.param('id')).set(req.body, {merge: true});
+	let worker = db.collection('workers').doc(req.params.id).set(req.body, {merge: true});
 	res.send('Worker updated');
 });
 
@@ -55,6 +54,14 @@ app.get('/api/services', (req, res) => {
 	firebaseHelper.firestore
 		.backup(db, servicesCollection)
 		.then(data => res.status(200).send(data))
+});
+
+// Create and update service
+app.post('/api/services', (req, res) => {
+	let id = req.body.id
+	delete req.body.id;
+	let service = db.collection('services').doc(id).set(req.body, {merge: true});
+	res.send('service created or updated');
 });
 
 app.get('/api/trainings', (req, res) => {
@@ -82,5 +89,6 @@ app.post('/api/image', upload.array(), (req, res) => {
 		.createNewDocument(db, imageCollection, { url: newPic });
 	res.json({ response: 'new image created', new_customer: newPic });
 });
+
 
 app.listen(3000, () => console.log(`Example app listening on port 3000!`));

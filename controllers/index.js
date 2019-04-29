@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const multer = require('multer');
 const upload = multer();
 const firebaseHelper = require('firebase-functions-helper');
+const GeoFirestore = require("geofirestore").GeoFirestore;
 
 const app = express();
 
@@ -20,6 +21,7 @@ admin.initializeApp({
 
 const db = admin.firestore();
 const storage = admin.storage().bucket();
+const geofirestore = new GeoFirestore(db);
 
 const workersCollection = 'workers';
 const servicesCollection = 'services';
@@ -112,6 +114,20 @@ app.get('/api/jobs', (req, res) => {
 
 });
 
+app.get('/api/jobs/geo', (req, res) => {
+	const geocollection = geofirestore.collection(jobCollection);
+	let center = new admin.firestore.GeoPoint(38.123627, -122.21715);
+
+	// Create a GeoQuery based on a location
+	const query = geocollection.near({ center: center, radius: 1000 });
+
+	// Get query (as Promise)
+	query.get().then((value) => {
+	  console.log(value.docs); // All docs returned by GeoQuery
+		res.send(value.docs)
+	});
+});
+
 // Create job
 app.post('/api/jobs', (req, res) => {
 	const {
@@ -127,13 +143,14 @@ app.post('/api/jobs', (req, res) => {
 	const customer_id = req.body['messenger user id'];
 	const first_name = req.body['first name'];
 
+	let location = new admin.firestore.GeoPoint(latitude, longitude);
+
 	const job = {
 		customer_id,
 		description,
 		start_date,
 		end_date,
-		latitude,
-		longitude,
+		location,
 		service_id,
 		price
 	};

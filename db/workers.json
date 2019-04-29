@@ -1,0 +1,16 @@
+{
+  "workers": {
+    "alovelace": {
+      "id":,
+      "first_name":,
+      "last_name":,
+      "rating":,
+      "social_secure":,
+      "tax_id":,
+      "id_img_path":,
+      "address_img_path":,
+      "ss_img_path":,
+      "fb_user_id":,
+    },
+  }
+}

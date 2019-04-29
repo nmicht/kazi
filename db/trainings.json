@@ -1,0 +1,19 @@
+{
+  "trainings": {
+    "t1": {
+      "id": "123",
+      "name": "first training",
+      "description": "adasdasd"
+    },
+    "t2": {
+      "id": "1234",
+      "name": "second training",
+      "description": "adasdasd"
+    },
+    "t3": {
+      "id": "12345",
+      "name": "third training",
+      "description": "adasdasd"
+    }
+  }
+}

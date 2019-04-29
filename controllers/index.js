@@ -26,6 +26,7 @@ const servicesCollection = 'services';
 const customersCollection = 'customers';
 const trainingsCollection = 'trainings';
 const imageCollection = 'images';
+const jobCollection = 'jobs';
 
 app.get("/api", (req, res) => {
 	res.json({ test: "" });
@@ -81,6 +82,44 @@ app.post('/api/customers', (req, res) => {
 	firebaseHelper.firestore
 		.createNewDocument(db, customersCollection, newCustomer);
 	res.json({ response: 'new customer created', new_customer: newCustomer });
+});
+
+// Create job
+app.post('/api/jobs', (req, res) => {
+	const {
+		description,
+		start_date,
+		end_date,
+		latitude,
+		longitude,
+		service_id,
+		price,
+	} = req.body;
+
+	const customer_id = req.body['messenger user id'];
+	const first_name = req.body['first name'];
+
+	const job = {
+		customer_id,
+		description,
+		start_date,
+		end_date,
+		latitude,
+		longitude,
+		service_id,
+		price
+	};
+
+	console.log(job);
+
+	firebaseHelper.firestore
+		.createNewDocument(db, jobCollection, job);
+
+	res.json({
+		messages: [
+			{ text: `Thank you very much ${first_name}, your job was created successfully. Bye!` }
+		]
+	});
 });
 
 app.post('/api/image', upload.array(), (req, res) => {

@@ -1,0 +1,71 @@
+{
+  "trainings": {
+    "t1": {
+      "name": "first training",
+      "description": "adasdasd"
+    },
+    "t2": {
+      "name": "second training",
+      "description": "adasdasd"
+    },
+    "t3": {
+      "name": "third training",
+      "description": "adasdasd"
+    }
+  },
+  "services": {
+    "s1": {
+      "name": "painting",
+      "description": "asdasdas",
+      "price_per_unit": 5
+    },
+    "s2": {
+      "name": "plumbing",
+      "description": "asdasdas",
+      "price_per_unit": 10
+    },
+    "s3": {
+      "name": "electricity",
+      "description": "asdasdas",
+      "price_per_unit": 15
+    }
+  },
+  "workers" : {
+    "piero" : {
+      "address_img_path" : "piero-address.jpg",
+      "docs" : {
+        "d1" : {
+          "201" : "2019-03-29",
+          "receipt_img_path" : "piero-receipt-01.jpg",
+          "timestamp" : 1459361875666
+        },
+        "d2" : {
+          "receipt_date" : "2019-04-29",
+          "receipt_img_path" : "piero-receipt-02.jpg",
+          "timestamp" : 1459361875666
+        }
+      },
+      "fb_user_id" : "1234",
+      "first_name" : "Piero",
+      "id" : "pieroid",
+      "id_img_path" : "piero-id.jpg",
+      "last_name" : "divasto",
+      "rating" : 5,
+      "services" : {
+        "s1" : true,
+        "s2" : false,
+        "s3" : true
+      },
+      "social_secure" : "12345",
+      "ss_img_path" : "piero-ss.jpg",
+      "tax_id" : "54321",
+      "trainings" : {
+        "t1" : {
+          "completed_date" : "",
+          "starting_date" : "2019-02-29",
+          "status" : "progress"
+        }
+      }
+    }
+  }
+}

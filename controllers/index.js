@@ -84,18 +84,27 @@ app.post('/api/customers', (req, res) => {
 	res.json({ response: 'new customer created', new_customer: newCustomer });
 });
 
+function searchGeo(lat, lng) {
+	const geocollection = geofirestore.collection(jobCollection);
+	let center = new admin.firestore.GeoPoint(parseInt(lat), parseInt(lng));
+
+	// Create a GeoQuery based on a location
+	const query = geocollection.near({ center: center, radius: 10000 });
+
+	return query;
+}
+
 // Find jobs
 app.get('/api/jobs', (req, res) => {
-	let filters = req.query
 	let data = []
-	let jobsRef = db.collection(jobCollection);
-	if(Object.keys(filters).length) {
-		jobsRef = jobsRef.where('service_id', '==', filters.service) // Add to filter by location
+	let query = searchGeo(req.query.lat, req.query.lng)
+	if(req.query.service) {
+		query = query.where('service_id', '==', req.query.service)
 	}
-	let query = jobsRef.get()
+	let result = query.get()
 	  .then(snapshot => {
 	    if (snapshot.empty) {
-				res.status(204).send('We do not have jobs for your criteria')
+				res.send('We do not have jobs for your criteria')
 	      return;
 	    }
 
@@ -114,22 +123,9 @@ app.get('/api/jobs', (req, res) => {
 
 });
 
-app.get('/api/jobs/geo', (req, res) => {
-	const geocollection = geofirestore.collection(jobCollection);
-	let center = new admin.firestore.GeoPoint(38.123627, -122.21715);
-
-	// Create a GeoQuery based on a location
-	const query = geocollection.near({ center: center, radius: 1000 });
-
-	// Get query (as Promise)
-	query.get().then((value) => {
-	  console.log(value.docs); // All docs returned by GeoQuery
-		res.send(value.docs)
-	});
-});
-
 // Create job
 app.post('/api/jobs', (req, res) => {
+	const geocollection = geofirestore.collection(jobCollection);
 	const {
 		description,
 		start_date,
@@ -143,22 +139,19 @@ app.post('/api/jobs', (req, res) => {
 	const customer_id = req.body['messenger user id'];
 	const first_name = req.body['first name'];
 
-	let location = new admin.firestore.GeoPoint(latitude, longitude);
+	let coordinates = new admin.firestore.GeoPoint(latitude, longitude);
 
 	const job = {
 		customer_id,
 		description,
 		start_date,
 		end_date,
-		location,
+		coordinates,
 		service_id,
 		price
 	};
 
-	console.log(job);
-
-	firebaseHelper.firestore
-		.createNewDocument(db, jobCollection, job);
+	let p = geocollection.add(job);
 
 	res.json({
 		messages: [
@@ -173,6 +166,5 @@ app.post('/api/image', upload.array(), (req, res) => {
 		.createNewDocument(db, imageCollection, { url: newPic });
 	res.json({ response: 'new image created', new_customer: newPic });
 });
-
 
 app.listen(3000, () => console.log(`Example app listening on port 3000!`));

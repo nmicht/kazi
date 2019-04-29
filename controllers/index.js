@@ -11,7 +11,7 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-const serviceAccount = require('./kazi-80068-firebase-adminsdk-ok7bf-5811e8a648');
+const serviceAccount = require('./firebase-credentials');
 
 admin.initializeApp({
 	credential: admin.credential.cert(serviceAccount),
@@ -41,7 +41,14 @@ app.get('/api/workers', (req, res) => {
 app.post('/api/workers', (req, res) => {
 	firebaseHelper.firestore
 		.createNewDocument(db, workersCollection, req.body);
+	// let id = `${req.body.first_name}-${req.body.last_name}`
+	// let worker = db.collection('workers').doc().set(req.body);
 	res.send('Created new worker');
+});
+
+app.post('/api/workers/:id', (req, res) => {
+	let worker = db.collection('workers').doc(req.param('id')).set(req.body, {merge: true});
+	res.send('Worker updated');
 });
 
 app.get('/api/services', (req, res) => {

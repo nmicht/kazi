@@ -87,7 +87,10 @@ app.get('/api/jobs', (req, res) => {
 	let filters = req.query
 	let data = []
 	let jobsRef = db.collection(jobCollection);
-	let query = jobsRef.where('service_id', '==', filters.service).get() // Add to filter by location
+	if(Object.keys(filters).length) {
+		jobsRef = jobsRef.where('service_id', '==', filters.service) // Add to filter by location
+	}
+	let query = jobsRef.get()
 	  .then(snapshot => {
 	    if (snapshot.empty) {
 				res.status(204).send('We do not have jobs for your criteria')
@@ -96,12 +99,15 @@ app.get('/api/jobs', (req, res) => {
 
 	    snapshot.forEach(doc => {
 				data.push(doc.data())
-				res.send(data)
 	    });
+
+			res.send(data);
+			return;
 	  })
 	  .catch(err => {
 	    console.log('Error getting documents', err);
 			res.status(500).send({ error: 'Something failed!' });
+			return;
 	  });
 
 });

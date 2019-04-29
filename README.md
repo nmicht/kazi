@@ -1,2 +1,5 @@
-# kazi
-Fostering job formalization
+# KAZI
+Fostering job formalization.
+
+## Features
+-

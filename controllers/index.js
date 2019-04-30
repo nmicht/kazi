@@ -311,7 +311,7 @@ app.post('/api/jobs/feedback', (req, res) => {
 		}
 
 		let jobId = snapshot.docs[0].id;
-		let customerId = snapshot.docs[0].customer_id;
+		let customerId = snapshot.docs[0].data().customer_id;
 
 		let jobData = {
 			d: {
@@ -333,6 +333,25 @@ app.post('/api/jobs/feedback', (req, res) => {
 				}
 			]
 		});
+
+		worker
+			.get()
+			.then(data => {
+				const dataReceipt = {
+					first_name: data.first_name,
+					last_name: data.last_name,
+					price: snapshot.docs[0].data().price,
+					job_type: snapshot.docs[0].data().service_id,
+					job_description: snapshot.docs[0].data().description
+				};
+
+				axios
+					.post(GRAPH_API_URL, buildReceipt(req.body['messenger user id'], dataReceipt))
+					.then(() => {
+						return axios.port(GRAPH_API_URL, buildReceipt(customerId, dataReceipt));
+					})
+					.catch(err => console.log(err));
+			});
 	})
 	.catch(err => {
 		console.log('Error getting documents', err);
@@ -667,11 +686,11 @@ function buildReceipt(recipientId, data) {
 				"payload":{
 					"template_type":"receipt",
 					"recipient_name": data.first_name + ' ' + data.last_name,
-					"order_number":"12345678902",
+					"order_number": "12345678902",
 					"currency":"USD",
 					"payment_method":"Cash",
 					"order_url":"http://petersapparel.parseapp.com/order?order_id=123456",
-					"timestamp": Date.now(),
+					"timestamp": Math.round((new Date()).getTime() / 1000),
 					"address":{
 						"street_1":"1 Hacker Way",
 						"street_2":"",
@@ -687,7 +706,7 @@ function buildReceipt(recipientId, data) {
 					},
 					"adjustments":[
 						{
-							"name": "Insurance",
+							"name": "Health Insurance",
 							"amount": (data.price * 0.1).toFixed(2)
 						}
 					],

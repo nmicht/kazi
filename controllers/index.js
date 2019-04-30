@@ -395,7 +395,7 @@ function buildWorkerCard(worker) {
 				"url": "https://peterssendreceiveapp.ngrok.io/collection",
 				"messenger_extensions": true,
 				"webview_height_ratio": "tall",
-				"fallback_url": "https://peterssendreceiveapp.ngrok.io/"
+				"fallback_url": "https://peterssendreceiveapp.ngrok.io/",
 				"set_attributes": {
 					"selected_worker_id": worker.id
 				}

@@ -94,7 +94,11 @@ function searchGeo(lat, lng) {
 	return query;
 }
 
-// Find jobs
+/**
+ * Search for jobs
+ * Will always search geolocated using query params for lat and lng
+ * Can also receive a query string for service
+ */
 app.get('/api/jobs', (req, res) => {
 	let data = [];
 	let query = searchGeo(req.query.latitude, req.query.longitud);
@@ -197,9 +201,18 @@ app.post('/api/jobs', (req, res) => {
 	});
 });
 
-// Update job
-
-
+/**
+ * Update a job
+ * {
+		"d": {
+				"rating": 5
+			}
+		}
+ */
+app.post('/api/jobs/:id', (req, res) => {
+	let job = db.collection(jobCollection).doc(req.params.id).set(req.body, {merge: true});
+	res.send('Job updated');
+});
 
 app.post('/api/image', upload.array(), (req, res) => {
 	const newPic = req.body.PICTURE;

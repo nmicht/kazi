@@ -294,6 +294,57 @@ app.post('/api/jobs', (req, res) => {
 	});
 });
 
+app.post('/api/jobs/feedback', (req, res) => {
+	let worker = db.collection(workersCollection).doc(req.body['messenger user id'])
+	let r = geofirestore.collection(jobCollection).where('worker_id', '==', worker).limit(1).get()
+	.then(snapshot => {
+		if (snapshot.empty) {
+			res.send({
+				messages: [
+					{
+						text: 'There are not jobs assigned for you.'
+					}
+				]
+			});
+			return;
+		}
+
+		let jobId = snapshot.docs[0].id;
+		let customerId = snapshot.docs[0].customer_id;
+
+		let jobData = {
+			d: {
+				worker_comment_to_employer: req.body.worker_comment_to_employer,
+				worker_comment_to_us: req.body.worker_comment_to_us,
+			}
+		}
+		let job = db.collection(jobCollection).doc(jobId).set(jobData, {merge: true});
+
+		let customerData = {
+			rating: parseInt(req.body.worker_employer_rating)
+		}
+		let customer = db.collection(customersCollection).doc(customerId).set(jobData, {merge: true});
+
+		res.send({
+			messages: [
+				{
+					text: 'The feedback and rating was updated. Thank you!'
+				}
+			]
+		});
+	})
+	.catch(err => {
+		console.log('Error getting documents', err);
+		res.send({
+			messages: [
+				{
+					text: 'Something failed!'
+				}
+			]
+		});
+	});
+});
+
 // Update a job
 app.post('/api/jobs/:id', (req, res) => {
 	let job = db.collection(jobCollection).doc(req.params.id).set(req.body, {merge: true});
@@ -323,22 +374,7 @@ app.post('/api/jobs/:id/assign', (req, res) => {
 	});
 });
 
-app.post('/api/jobs/:id/feedback', (req, res) => {
-	let job = db.collection(jobCollection).doc(req.params.id).get()
-	.then(doc => {
-		if (!doc.exists) {
-			res.send({
-				messages: [
-					{
-						text: 'The job does not exist'
-					}
-				]
-			})
-		} else {
-			console.log(doc.data());
-		}
-	});
-});
+
 
 // Add applicants for a job
 app.post('/api/jobs/:jobId/apply/:applicantId', (req, res) => {
@@ -404,7 +440,6 @@ app.post('/api/jobs/:jobId/apply/:applicantId', (req, res) => {
 			});
 		});
 });
-
 
 app.post('/api/image', upload.array(), (req, res) => {
 	const newPic = req.body.PICTURE;

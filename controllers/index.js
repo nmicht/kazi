@@ -322,6 +322,20 @@ app.post('/api/jobs/:id/assign', (req, res) => {
 			}
 		]
 	});
+
+	axios
+		.post(
+			GRAPH_API_URL,
+			{
+				"recipient":{
+					"id": req.body.selected_worker_id
+				},
+				"message": {
+					"text": "Congratulations! You were selected for the job! You have to go to the following address"
+				},
+			}
+		)
+		.catch(err => console.log(err));
 });
 
 app.post('/api/jobs/:id/feedback', (req, res) => {

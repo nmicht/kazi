@@ -214,7 +214,7 @@ app.get('/api/jobs/:id/applicants', (req, res) => {
 					let promises = doc.data().d.applicants.map(applicant => {
 						return applicant.get()
 						.then(worker => {
-							return {id: applicant.id, ...worker.data()}
+							return buildWorkerCard({id: applicant.id, ...worker.data()})
 						})
 					})
 
@@ -458,26 +458,8 @@ function buildJobDetailTemplate(data, lat, long, jobId) {
 
 function buildWorkerCard(worker) {
 	return {
-		"title": `${worker.first_name} ${worker.last_name}`,
-		"subtitle": getStars(worker.rating),
-		"buttons": [
-			{
-				"title": "Accept",
-				"type": "web_url",
-				"url": "https://peterssendreceiveapp.ngrok.io/collection",
-				"messenger_extensions": true,
-				"webview_height_ratio": "tall",
-				"fallback_url": "https://peterssendreceiveapp.ngrok.io/",
-				"set_attributes": {
-					"selected_worker_id": worker.id
-				}
-			}
-		]
-	}
-
-	return {
 		title: `${worker.first_name} ${worker.last_name}`,
-		subtitle: getStars(worker.rating || 5),
+		subtitle: getStars(Math.round(worker.rating || 5)),
 		image_url: worker.profile_pic_url,
 		buttons: [
 			{
@@ -487,14 +469,6 @@ function buildWorkerCard(worker) {
 				"block_names": ["Accept"],
 				type: "show_block",
 				title: "Accept"
-			},
-			{
-				'set_attributes': {
-					"worker_id": worker.id
-				},
-				"block_names": ["Reject"],
-				type: "show_block",
-				title: "Reject"
 			}
 		]
 	}

@@ -196,6 +196,35 @@ app.get('/api/jobs/:id', (req, res) => {
 		});
 });
 
+app.get('/api/jobs/:id/applicants', (req, res) => {
+	let job = db.collection(jobCollection).doc(req.params.id).get()
+		.then(doc => {
+			if (!doc.exists) {
+				res.send({
+					messages: [
+						{
+							text: 'The job does not exist'
+						}
+					]
+				})
+			} else {
+				console.log('Document data:', doc.data());
+				let template = buildJobApplicantsTemplate(doc.data().d);
+				res.send(template);
+			}
+		})
+		.catch(err => {
+			console.log('Error getting document', err);
+			res.send({
+				messages: [
+					{
+						text: 'Something failed!'
+					}
+				]
+			});
+		});
+});
+
 // Create job
 app.post('/api/jobs', (req, res) => {
 	const geocollection = geofirestore.collection(jobCollection);
@@ -309,7 +338,6 @@ function searchGeo(lat, lng, dist = 1000) {
 }
 
 function buildJobDetailTemplate(data, lat, long, jobId) {
-	console.log(data.coordinates);
 	return {
 		"messages": [
 			{"text": `Job Type: ${data.service_id}`},
@@ -334,6 +362,52 @@ function buildJobDetailTemplate(data, lat, long, jobId) {
 								title: "I want to apply"
 							}
 						]
+					}
+				}
+			}
+		]
+	};
+}
+
+function buildWorkerCard(worker) {
+	return {
+		"title": `${worker.first_name} ${worker.last_name}`,
+		"subtitle": getStars(worker.rating),
+		"buttons": [
+			{
+				"title": "Accept",
+				"type": "web_url",
+				"url": "https://peterssendreceiveapp.ngrok.io/collection",
+				"messenger_extensions": true,
+				"webview_height_ratio": "tall",
+				"fallback_url": "https://peterssendreceiveapp.ngrok.io/"
+				"set_attributes": {
+					"selected_worker_id": worker.id
+				}
+			}
+		]
+	}
+}
+
+function buildJobApplicantsTemplate(data) {
+	let cards = data.applicants.map(applicant => buildWorkerCard(applicant))
+
+	return {
+		messages: [
+			{
+				attachment: {
+					type: 'template',
+					payload: {
+						'template_type': 'list',
+						"top_element_style": "compact",
+						elements: cards,
+						"buttons": [
+		          {
+		            "title": "View More",
+		            "type": "postback",
+		            "payload": "payload"
+		          }
+		        ]
 					}
 				}
 			}

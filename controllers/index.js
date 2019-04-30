@@ -231,7 +231,6 @@ app.post('/api/jobs', (req, res) => {
 	const {
 		description,
 		start_date,
-		end_date,
 		latitude,
 		longitude,
 		service_id,
@@ -247,7 +246,6 @@ app.post('/api/jobs', (req, res) => {
 		customer_id,
 		description,
 		start_date,
-		end_date,
 		coordinates,
 		service_id,
 		price
@@ -258,7 +256,8 @@ app.post('/api/jobs', (req, res) => {
 	res.json({
 		messages: [
 			{
-				text: `Thank you very much ${first_name}, your job was created successfully. Bye!`
+				text: `Thank you very much ${first_name}, your job was created successfully. We will notify you when someone is 
+				available to do that job. Thanks!`
 			}
 		]
 	});

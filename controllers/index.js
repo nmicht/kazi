@@ -306,6 +306,23 @@ app.post('/api/jobs/:id', (req, res) => {
 	});
 });
 
+app.post('/api/jobs/:id/assign', (req, res) => {
+	let data = {
+		d: {
+			worker_id: db.doc(`${workersCollection}/${req.body.worker_id}`)
+		}
+	}
+
+	let job = db.collection(jobCollection).doc(req.params.id).set(data, {merge: true});
+	res.send({
+		messages: [
+			{
+				text: 'The job have a worker assigned!'
+			}
+		]
+	});
+});
+
 app.post('/api/jobs/:id/feedback', (req, res) => {
 	let job = db.collection(jobCollection).doc(req.params.id).get()
 	.then(doc => {
@@ -457,6 +474,30 @@ function buildWorkerCard(worker) {
 			}
 		]
 	}
+
+	return {
+		title: `${worker.first_name} ${worker.last_name}`,
+		subtitle: getStars(worker.rating || 5),
+		image_url: worker.profile_pic_url,
+		buttons: [
+			{
+				'set_attributes': {
+					"worker_id": worker.id
+				},
+				"block_names": ["Accept"],
+				type: "show_block",
+				title: "Accept"
+			},
+			{
+				'set_attributes': {
+					"worker_id": worker.id
+				},
+				"block_names": ["Reject"],
+				type: "show_block",
+				title: "Reject"
+			}
+		]
+	}
 }
 
 function buildJobApplicantsTemplate(data, cards) {
@@ -466,16 +507,9 @@ function buildJobApplicantsTemplate(data, cards) {
 				attachment: {
 					type: 'template',
 					payload: {
-						'template_type': 'list',
-						"top_element_style": "compact",
-						elements: cards,
-						"buttons": [
-							{
-								"title": "View More",
-								"type": "postback",
-								"payload": "payload"
-							}
-						]
+						'template_type': 'generic',
+						'image_aspect_ration': 'square',
+						elements: cards
 					}
 				}
 			}

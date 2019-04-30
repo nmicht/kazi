@@ -259,6 +259,7 @@ app.post('/api/jobs', (req, res) => {
 
 	const customer_id = req.body['messenger user id'];
 	const first_name = req.body['first name'];
+	const last_name = req.body['last name'];
 
 	let coordinates = new admin.firestore.GeoPoint(parseFloat(latitude), parseFloat(longitude));
 
@@ -272,6 +273,16 @@ app.post('/api/jobs', (req, res) => {
 	};
 
 	let p = geocollection.add(job);
+
+	// Create customer
+	const customerData = {
+		first_name,
+		last_name,
+		profile_pic_url: req.body['profile pic url'],
+		city: req.body.city,
+		country: req.body.country,
+	}
+	let customer = db.collection(customersCollection).doc(customer_id).set(customerData, {merge: true});
 
 	res.json({
 		messages: [

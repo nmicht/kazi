@@ -214,7 +214,7 @@ app.get('/api/jobs/:id/applicants', (req, res) => {
 					let promises = doc.data().d.applicants.map(applicant => {
 						return applicant.get()
 						.then(worker => {
-							return buildWorkerCard({id: applicant.id, ...worker.data()})
+							return buildWorkerCard({id: applicant.id, ...worker.data(), job_id: req.params.id})
 						})
 					})
 
@@ -309,7 +309,7 @@ app.post('/api/jobs/:id', (req, res) => {
 app.post('/api/jobs/:id/assign', (req, res) => {
 	let data = {
 		d: {
-			worker_id: db.doc(`${workersCollection}/${req.body.worker_id}`)
+			worker_id: db.doc(`${workersCollection}/${req.body.selected_worker_id}`)
 		}
 	}
 
@@ -464,7 +464,8 @@ function buildWorkerCard(worker) {
 		buttons: [
 			{
 				'set_attributes': {
-					"worker_id": worker.id
+					"selected_worker_id": worker.id,
+					"selected_job_id": worker.job_id
 				},
 				"block_names": ["Accept"],
 				type: "show_block",

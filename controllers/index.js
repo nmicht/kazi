@@ -94,7 +94,7 @@ app.post('/api/customers', (req, res) => {
  */
 app.get('/api/jobs', (req, res) => {
 	let data = [];
-	let query = searchGeo(req.query.latitude, req.query.longitude);
+	let query = searchGeo(req.query.latitude, req.query.longitude, req.query.radius || null);
 	if(req.query.service_id) {
 		query = query.where('service_id', '==', req.query.service_id)
 	}
@@ -174,12 +174,12 @@ app.post('/api/image', upload.array(), (req, res) => {
 	res.json({ response: 'new image created', new_customer: newPic });
 });
 
-function searchGeo(lat, lng, dist = 10000) {
+function searchGeo(lat, lng, dist = 1000) {
 	const geocollection = geofirestore.collection(jobCollection);
 	let center = new admin.firestore.GeoPoint(parseFloat(lat), parseFloat(lng));
 
 	// Create a GeoQuery based on a location
-	const query = geocollection.near({ center: center, radius: dist });
+	const query = geocollection.near({ center: center, radius: parseFloat(dist) });
 
 	return query;
 }

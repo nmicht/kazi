@@ -86,7 +86,7 @@ app.post('/api/customers', (req, res) => {
 
 function searchGeo(lat, lng) {
 	const geocollection = geofirestore.collection(jobCollection);
-	let center = new admin.firestore.GeoPoint(parseInt(lat), parseInt(lng));
+	let center = new admin.firestore.GeoPoint(parseFloat(lat), parseFloat(lng));
 
 	// Create a GeoQuery based on a location
 	const query = geocollection.near({ center: center, radius: 10000 });
@@ -104,7 +104,7 @@ app.get('/api/jobs', (req, res) => {
 	let result = query.get()
 	  .then(snapshot => {
 	    if (snapshot.empty) {
-				res.send('We do not have jobs for your criteria')
+				res.status(404).send('We do not have jobs for your criteria')
 	      return;
 	    }
 
@@ -139,7 +139,7 @@ app.post('/api/jobs', (req, res) => {
 	const customer_id = req.body['messenger user id'];
 	const first_name = req.body['first name'];
 
-	let coordinates = new admin.firestore.GeoPoint(latitude, longitude);
+	let coordinates = new admin.firestore.GeoPoint(parseFloat(latitude), parseFloat(longitude));
 
 	const job = {
 		customer_id,
@@ -159,6 +159,10 @@ app.post('/api/jobs', (req, res) => {
 		]
 	});
 });
+
+// Update job
+
+
 
 app.post('/api/image', upload.array(), (req, res) => {
 	const newPic = req.body.PICTURE;

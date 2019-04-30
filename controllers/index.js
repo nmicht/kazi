@@ -350,9 +350,9 @@ function buildJobCardCustomer(job) {
 					"show_issue_details": job.customer_id,
 					"job_id": job.id
 				},
-				"block_names": ["Show more details"],
+				"block_names": ["Show applicants"],
 				type: "show_block",
-				title: "Show More Details"
+				title: "Show Applicants"
 			},
 			{
 				'set_attributes': {

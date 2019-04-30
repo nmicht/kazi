@@ -96,8 +96,8 @@ function searchGeo(lat, lng) {
 
 // Find jobs
 app.get('/api/jobs', (req, res) => {
-	let data = []
-	let query = searchGeo(req.query.lat, req.query.lng)
+	let data = [];
+	let query = searchGeo(req.query.latitude, req.query.longitud);
 	if(req.query.service) {
 		query = query.where('service_id', '==', req.query.service_id)
 	}

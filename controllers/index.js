@@ -9,7 +9,7 @@ const GeoFirestore = require("geofirestore").GeoFirestore;
 const app = express();
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({extended: false}));
 
 const serviceAccount = require('./firebase-credentials');
 
@@ -31,7 +31,7 @@ const imageCollection = 'images';
 const jobCollection = 'jobs';
 
 app.get("/api", (req, res) => {
-	res.json({ test: "" });
+	res.json({test: ""});
 });
 
 app.get('/api/workers', (req, res) => {
@@ -59,7 +59,7 @@ app.get('/api/services', (req, res) => {
 
 // Create and update service
 app.post('/api/services', (req, res) => {
-	let id = req.body.id
+	let id = req.body.id;
 	delete req.body.id;
 	let service = db.collection(servicesCollection).doc(id).set(req.body, {merge: true});
 	res.send('service created or updated');
@@ -69,7 +69,7 @@ app.get('/api/trainings', (req, res) => {
 	firebaseHelper.firestore
 		.backup(db, trainingsCollection)
 		.then((data) => {
-			let template = buildTrainingCarrouselTemplate(data.trainings)
+			let template = buildTrainingCarrouselTemplate(data.trainings);
 			res.json(template);
 		})
 });
@@ -84,7 +84,7 @@ app.post('/api/customers', (req, res) => {
 	const newCustomer = req.body;
 	firebaseHelper.firestore
 		.createNewDocument(db, customersCollection, newCustomer);
-	res.json({ response: 'new customer created', new_customer: newCustomer });
+	res.json({response: 'new customer created', new_customer: newCustomer});
 });
 
 /**
@@ -93,34 +93,33 @@ app.post('/api/customers', (req, res) => {
  * Can also receive a query string for service
  */
 app.get('/api/jobs', (req, res) => {
+	console.log(req.query);
 	let data = [];
-	let query = searchGeo(req.query.latitude, req.query.longitude, req.query.radius || null);
-	if(req.query.service_id) {
-		query = query.where('service_id', '==', req.query.service_id)
+	let query = searchGeo(req.query.latitude, req.query.longitude, req.query.radius || undefined);
+	if (req.query.service_id_search && req.query.service_id_search !== 'undefined') {
+		query = query.where('service_id', '==', req.query.service_id_search)
 	}
 	let result = query.get()
-	  .then(snapshot => {
-	    if (snapshot.empty) {
-				res.status(404).send('We do not have jobs for your criteria')
-	      return;
-	    }
+		.then(snapshot => {
+			if (snapshot.empty) {
+				res.status(404).send('We do not have jobs for your criteria');
+				return;
+			}
 
-	    snapshot.forEach(doc => {
+			snapshot.forEach(doc => {
 				data.push({id: doc.id, ...doc.data()})
-	    });
+			});
 
-	    console.log(data);
+			console.log(data);
 
-			let template = buildJobCarrouselTemplate(data)
+			let template = buildJobCarrouselTemplate(data);
 			res.json(template);
-			return;
-	  })
-	  .catch(err => {
-	    console.log('Error getting documents', err);
-			res.status(500).send({ error: 'Something failed!' });
-			return;
-	  });
 
+		})
+		.catch(err => {
+			console.log('Error getting documents', err);
+			res.status(500).send({error: 'Something failed!'});
+		});
 });
 
 // Create job
@@ -155,7 +154,7 @@ app.post('/api/jobs', (req, res) => {
 
 	res.json({
 		messages: [
-			{ text: `Thank you very much ${first_name}, your job was created successfully. Bye!` }
+			{text: `Thank you very much ${first_name}, your job was created successfully. Bye!`}
 		]
 	});
 });
@@ -169,51 +168,49 @@ app.post('/api/jobs/:id', (req, res) => {
 app.get('/api/jobs/:id', (req, res) => {
 	let job = db.collection(jobCollection).doc(req.params.id).get()
 		.then(doc => {
-	    if (!doc.exists) {
-	      res.status(404).send('The job does not exist')
-	    } else {
-	      console.log('Document data:', doc.data());
-				let template = buildJobDetailTemplate(doc.data().d)
+			if (!doc.exists) {
+				res.status(404).send('The job does not exist')
+			} else {
+				console.log('Document data:', doc.data());
+				let template = buildJobDetailTemplate(doc.data().d);
 				res.json(template);
-	    }
-	  })
-	  .catch(err => {
-	    console.log('Error getting document', err);
-			res.status(500).send({ error: 'Something failed!' });
-	  });
-})
+			}
+		})
+		.catch(err => {
+			console.log('Error getting document', err);
+			res.status(500).send({error: 'Something failed!'});
+		});
+});
 
 // Add applicants for a job
 app.post('/api/jobs/:jobId/apply/:applicantId', (req, res) => {
 	let job = db.collection(jobCollection).doc(req.params.jobId).get()
 		.then(doc => {
-	    if (!doc.exists) {
-	      res.status(404).send('The job does not exist')
-	    } else {
-				let data = {}
-				let applicants = doc.data().d.applicants || []
-				applicants.push(req.params.applicantId)
+			if (!doc.exists) {
+				res.status(404).send('The job does not exist')
+			} else {
+				let data = {};
+				let applicants = doc.data().d.applicants || [];
+				applicants.push(req.params.applicantId);
 				console.log(applicants);
 				data.d = {
 					applicants,
-				}
+				};
 				db.collection(jobCollection).doc(req.params.jobId).set(data, {merge: true});
 				res.send('Applicat added to the job');
-	    }
-	  })
-	  .catch(err => {
-	    console.log('Error getting document', err);
-			res.status(500).send({ error: 'Something failed!' });
-	  });
+			}
+		})
+		.catch(err => {
+			console.log('Error getting document', err);
+			res.status(500).send({error: 'Something failed!'});
+		});
 });
-
-
 
 app.post('/api/image', upload.array(), (req, res) => {
 	const newPic = req.body.PICTURE;
 	firebaseHelper.firestore
-		.createNewDocument(db, imageCollection, { url: newPic });
-	res.json({ response: 'new image created', new_customer: newPic });
+		.createNewDocument(db, imageCollection, {url: newPic});
+	res.json({response: 'new image created', new_customer: newPic});
 });
 
 function searchGeo(lat, lng, dist = 1000) {
@@ -221,7 +218,7 @@ function searchGeo(lat, lng, dist = 1000) {
 	let center = new admin.firestore.GeoPoint(parseFloat(lat), parseFloat(lng));
 
 	// Create a GeoQuery based on a location
-	const query = geocollection.near({ center: center, radius: parseFloat(dist) });
+	const query = geocollection.near({center: center, radius: parseFloat(dist)});
 
 	return query;
 }
@@ -242,7 +239,7 @@ function buildJobCarrouselTemplate(data) {
 						"show_issue_details": job.customer_id,
 						"job_id": job.id
 					},
-					"block_names": [ "Show more details" ],
+					"block_names": ["Show more details"],
 					type: "show_block",
 					title: "Show More Details"
 				},
@@ -250,13 +247,13 @@ function buildJobCarrouselTemplate(data) {
 					'set_attributes': {
 						"job_id": job.id
 					},
-					"block_names": [ "I want to apply" ],
+					"block_names": ["I want to apply"],
 					type: "show_block",
 					title: "I want to apply"
 				}
 			]
 		}
-	})
+	});
 
 	return {
 		messages: [
@@ -275,17 +272,17 @@ function buildJobCarrouselTemplate(data) {
 }
 
 function buildTrainingCarrouselTemplate(data) {
-	let cards = []
-	for(key in data){
+	let cards = [];
+	for (key in data) {
 		cards.push({
 			media_type: "image",
 			url: data[key].media_url,
 			buttons: [
-			 {
+				{
 					"type": "web_url",
 					"url": data[key].web_url,
 					"title": "View Training",
-			 }
+				}
 			]
 		})
 	}

@@ -69,7 +69,7 @@ app.get('/api/trainings', (req, res) => {
 	firebaseHelper.firestore
 		.backup(db, trainingsCollection)
 		.then((data) => {
-			let template = buildTrainingsTemplate(data.trainings)
+			let template = buildTrainingCarrouselTemplate(data.trainings)
 			res.json(template);
 		})
 });
@@ -111,7 +111,7 @@ app.get('/api/jobs', (req, res) => {
 
 	    console.log(data);
 
-			let template = buildJobsTemplate(data)
+			let template = buildJobCarrouselTemplate(data)
 			res.json(template);
 			return;
 	  })
@@ -166,6 +166,34 @@ app.post('/api/jobs/:id', (req, res) => {
 	res.send('Job updated');
 });
 
+app.get('/api/jobs/:id', (req, res) => {
+	let job = db.collection(jobCollection).doc(req.params.id).get()
+		.then(doc => {
+	    if (!doc.exists) {
+	      res.status(404).send('The job does not exist')
+	    } else {
+	      console.log('Document data:', doc.data());
+				let template = buildJobDetailTemplate(doc.data().d)
+				res.json(template);
+	    }
+	  })
+	  .catch(err => {
+	    console.log('Error getting document', err);
+			res.status(500).send({ error: 'Something failed!' });
+	  });
+
+
+})
+// Add applicants for a job
+app.post('/api/jobs/:id/apply', (req, res) => {
+	let job = db.collection(jobCollection).doc(req.params.id).get();
+
+
+	// let job = db.collection(jobCollection).doc(req.params.id).set(req.body, {merge: true});
+	// res.send('Job updated');
+});
+
+
 
 app.post('/api/image', upload.array(), (req, res) => {
 	const newPic = req.body.PICTURE;
@@ -184,7 +212,11 @@ function searchGeo(lat, lng, dist = 1000) {
 	return query;
 }
 
-function buildJobsTemplate(data) {
+function buildJobDetailTemplate(data) {
+	return data;
+}
+
+function buildJobCarrouselTemplate(data) {
 	let cards = data.map(job => {
 		return {
 			title: `Job Type: ${job.service_id}`,
@@ -224,7 +256,7 @@ function buildJobsTemplate(data) {
 	};
 }
 
-function buildTrainingsTemplate(data) {
+function buildTrainingCarrouselTemplate(data) {
 	let cards = []
 	for(key in data){
 		cards.push({

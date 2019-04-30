@@ -210,17 +210,27 @@ app.get('/api/jobs/:id/applicants', (req, res) => {
 					]
 				})
 			} else {
-				let promises = doc.data().d.applicants.map(applicant => {
-					return applicant.get()
+				if (doc.data().d.hasOwnProperty('applicants')) {
+					let promises = doc.data().d.applicants.map(applicant => {
+						return applicant.get()
 						.then(worker => {
 							return {id: applicant.id, ...worker.data()}
 						})
-				})
+					})
 
-				Promise.all(promises).then((cards) => {
-					let template = buildJobApplicantsTemplate(doc.data().d, cards);
-					res.send(template);
-				});
+					Promise.all(promises).then((cards) => {
+						let template = buildJobApplicantsTemplate(doc.data().d, cards);
+						res.send(template);
+					});
+				} else {
+					res.send({
+						messages: [
+							{
+								text: 'There are no applicants for your job'
+							}
+						]
+					})
+				}
 			}
 		})
 		.catch(err => {
@@ -282,6 +292,23 @@ app.post('/api/jobs/:id', (req, res) => {
 				text: 'The job details were updated!'
 			}
 		]
+	});
+});
+
+app.post('/api/jobs/:id/feedback', (req, res) => {
+	let job = db.collection(jobCollection).doc(req.params.id).get()
+	.then(doc => {
+		if (!doc.exists) {
+			res.send({
+				messages: [
+					{
+						text: 'The job does not exist'
+					}
+				]
+			})
+		} else {
+			console.log(doc.data());
+		}
 	});
 });
 

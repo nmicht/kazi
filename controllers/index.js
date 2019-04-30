@@ -182,7 +182,6 @@ app.get('/api/jobs/:id', (req, res) => {
 					]
 				})
 			} else {
-				console.log('Document data:', doc.data());
 				let template = buildJobDetailTemplate(doc.data().d, parseFloat(req.query.latitude), parseFloat(req.query.longitude), req.params.id);
 				res.send(template);
 			}
@@ -211,9 +210,17 @@ app.get('/api/jobs/:id/applicants', (req, res) => {
 					]
 				})
 			} else {
-				console.log('Document data:', doc.data());
-				let template = buildJobApplicantsTemplate(doc.data().d);
-				res.send(template);
+				let promises = doc.data().d.applicants.map(applicant => {
+					return applicant.get()
+						.then(worker => {
+							return {id: applicant.id, ...worker.data()}
+						})
+				})
+
+				Promise.all(promises).then((cards) => {
+					let template = buildJobApplicantsTemplate(doc.data().d, cards);
+					res.send(template);
+				});
 			}
 		})
 		.catch(err => {
@@ -259,7 +266,7 @@ app.post('/api/jobs', (req, res) => {
 	res.json({
 		messages: [
 			{
-				text: `Thank you very much ${first_name}, your job was created successfully. We will notify you when someone is 
+				text: `Thank you very much ${first_name}, your job was created successfully. We will notify you when someone is
 				available to do that job. Thanks!`
 			}
 		]
@@ -293,12 +300,22 @@ app.post('/api/jobs/:jobId/apply/:applicantId', (req, res) => {
 			} else {
 				let data = {};
 				let applicants = doc.data().d.applicants || [];
-				applicants.push(req.params.applicantId);
-				console.log(applicants);
+				applicants.push(db.doc(`${workersCollection}/${req.params.applicantId}`));
 				data.d = {
 					applicants,
 				};
 				db.collection(jobCollection).doc(req.params.jobId).set(data, {merge: true});
+
+				// Create worker
+				const workerData = {
+					first_name: req.body['first name'],
+					last_name: req.body['last name'],
+					profile_pic_url: req.body['profile pic url'],
+					city: req.body.city,
+					country: req.body.country,
+				}
+				let worker = db.collection(workersCollection).doc(req.params.applicantId).set(workerData, {merge: true});
+
 				res.send({
 					messages: [
 						{
@@ -404,9 +421,7 @@ function buildWorkerCard(worker) {
 	}
 }
 
-function buildJobApplicantsTemplate(data) {
-	let cards = data.applicants.map(applicant => buildWorkerCard(applicant))
-
+function buildJobApplicantsTemplate(data, cards) {
 	return {
 		messages: [
 			{
@@ -417,12 +432,12 @@ function buildJobApplicantsTemplate(data) {
 						"top_element_style": "compact",
 						elements: cards,
 						"buttons": [
-		          {
-		            "title": "View More",
-		            "type": "postback",
-		            "payload": "payload"
-		          }
-		        ]
+							{
+								"title": "View More",
+								"type": "postback",
+								"payload": "payload"
+							}
+						]
 					}
 				}
 			}

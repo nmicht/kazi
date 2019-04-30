@@ -106,7 +106,7 @@ app.get('/api/jobs', (req, res) => {
 	    }
 
 	    snapshot.forEach(doc => {
-				data.push(doc.data())
+				data.push({id: doc.id, ...doc.data()})
 	    });
 
 	    console.log(data);
@@ -181,16 +181,30 @@ app.get('/api/jobs/:id', (req, res) => {
 	    console.log('Error getting document', err);
 			res.status(500).send({ error: 'Something failed!' });
 	  });
-
-
 })
+
 // Add applicants for a job
-app.post('/api/jobs/:id/apply', (req, res) => {
-	let job = db.collection(jobCollection).doc(req.params.id).get();
-
-
-	// let job = db.collection(jobCollection).doc(req.params.id).set(req.body, {merge: true});
-	// res.send('Job updated');
+app.post('/api/jobs/:jobId/apply/:applicantId', (req, res) => {
+	let job = db.collection(jobCollection).doc(req.params.jobId).get()
+		.then(doc => {
+	    if (!doc.exists) {
+	      res.status(404).send('The job does not exist')
+	    } else {
+				let data = {}
+				let applicants = doc.data().d.applicants || []
+				applicants.push(req.params.applicantId)
+				console.log(applicants);
+				data.d = {
+					applicants,
+				}
+				db.collection(jobCollection).doc(req.params.jobId).set(data, {merge: true});
+				res.send('Applicat added to the job');
+	    }
+	  })
+	  .catch(err => {
+	    console.log('Error getting document', err);
+			res.status(500).send({ error: 'Something failed!' });
+	  });
 });
 
 
@@ -225,16 +239,20 @@ function buildJobCarrouselTemplate(data) {
 			buttons: [
 				{
 					'set_attributes': {
-						"show_issue_details": job.customer_id
+						"show_issue_details": job.customer_id,
+						"job_id": job.id
 					},
 					"block_names": [ "Show more details" ],
 					type: "show_block",
 					title: "Show More Details"
 				},
 				{
-					"block_names": [ "Contact person" ],
+					'set_attributes': {
+						"job_id": job.id
+					},
+					"block_names": [ "I want to apply" ],
 					type: "show_block",
-					title: "Contact Person"
+					title: "I want to apply"
 				}
 			]
 		}

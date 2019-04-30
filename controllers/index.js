@@ -84,16 +84,6 @@ app.post('/api/customers', (req, res) => {
 	res.json({ response: 'new customer created', new_customer: newCustomer });
 });
 
-function searchGeo(lat, lng) {
-	const geocollection = geofirestore.collection(jobCollection);
-	let center = new admin.firestore.GeoPoint(parseFloat(lat), parseFloat(lng));
-
-	// Create a GeoQuery based on a location
-	const query = geocollection.near({ center: center, radius: 10000 });
-
-	return query;
-}
-
 /**
  * Search for jobs
  * Will always search geolocated using query params for lat and lng
@@ -101,8 +91,8 @@ function searchGeo(lat, lng) {
  */
 app.get('/api/jobs', (req, res) => {
 	let data = [];
-	let query = searchGeo(req.query.latitude, req.query.longitud);
-	if(req.query.service) {
+	let query = searchGeo(req.query.latitude, req.query.longitude);
+	if(req.query.service_id) {
 		query = query.where('service_id', '==', req.query.service_id)
 	}
 	let result = query.get()
@@ -118,42 +108,8 @@ app.get('/api/jobs', (req, res) => {
 
 	    console.log(data);
 
-			//res.send(data);
-			res.json({
-				messages: [
-					{
-						attachment: {
-							type: 'template',
-							payload: {
-								'template_type': 'generic',
-								'image_aspect_ration': 'square',
-								elements: data.map(job => {
-									return {
-										title: `Job Type: ${job.service_id}`,
-										'image_url': job.service_img_url,
-										subtitle: job.description.substring(0, 79),
-										buttons: [
-											{
-												'set_attributes': {
-													"show_issue_details": job.customer_id
-												},
-												"block_names": [ "Show more details" ],
-												type: "show_block",
-												title: "Show More Details"
-											},
-											{
-												"block_names": [ "Contact person" ],
-												type: "show_block",
-												title: "Contact Person"
-											}
-										]
-									}
-								})
-							}
-						}
-					}
-				]
-			});
+			let template = buildJobTemplate(data)
+			res.json(template);
 			return;
 	  })
 	  .catch(err => {
@@ -201,18 +157,12 @@ app.post('/api/jobs', (req, res) => {
 	});
 });
 
-/**
- * Update a job
- * {
-		"d": {
-				"rating": 5
-			}
-		}
- */
+// Update a job
 app.post('/api/jobs/:id', (req, res) => {
 	let job = db.collection(jobCollection).doc(req.params.id).set(req.body, {merge: true});
 	res.send('Job updated');
 });
+
 
 app.post('/api/image', upload.array(), (req, res) => {
 	const newPic = req.body.PICTURE;
@@ -220,5 +170,54 @@ app.post('/api/image', upload.array(), (req, res) => {
 		.createNewDocument(db, imageCollection, { url: newPic });
 	res.json({ response: 'new image created', new_customer: newPic });
 });
+
+function searchGeo(lat, lng, dist = 10000) {
+	const geocollection = geofirestore.collection(jobCollection);
+	let center = new admin.firestore.GeoPoint(parseFloat(lat), parseFloat(lng));
+
+	// Create a GeoQuery based on a location
+	const query = geocollection.near({ center: center, radius: dist });
+
+	return query;
+}
+
+function buildJobTemplate(data) {
+	return {
+		messages: [
+			{
+				attachment: {
+					type: 'template',
+					payload: {
+						'template_type': 'generic',
+						'image_aspect_ration': 'square',
+						elements: data.map(job => {
+							return {
+								title: `Job Type: ${job.service_id}`,
+								'image_url': job.service_img_url,
+								subtitle: job.description.substring(0, 79),
+								buttons: [
+									{
+										'set_attributes': {
+											"show_issue_details": job.customer_id
+										},
+										"block_names": [ "Show more details" ],
+										type: "show_block",
+										title: "Show More Details"
+									},
+									{
+										"block_names": [ "Contact person" ],
+										type: "show_block",
+										title: "Contact Person"
+									}
+								]
+							}
+						})
+					}
+				}
+			}
+		]
+	};
+}
+
 
 app.listen(3000, () => console.log(`Example app listening on port 3000!`));

@@ -348,7 +348,7 @@ app.post('/api/jobs/feedback', (req, res) => {
 				axios
 					.post(GRAPH_API_URL, buildReceipt(req.body['messenger user id'], dataReceipt))
 					.then(() => {
-						return axios.port(GRAPH_API_URL, buildReceipt(customerId, dataReceipt));
+						return axios.post(GRAPH_API_URL, buildReceipt(customerId, dataReceipt));
 					})
 					.catch(err => console.log(err));
 			});

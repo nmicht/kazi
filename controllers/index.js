@@ -137,7 +137,7 @@ app.get('/api/jobs', (req, res) => {
 
 app.get('/api/jobs/mine', (req, res) => {
 	let data = []
-	let jobs = geofirestore.collection(jobCollection).where('customer_id', '==', req.query.customer_id).get()
+	let jobs = geofirestore.collection(jobCollection).where('customer_id', '==', req.query['messenger user id']).get()
 		.then(snapshot => {
 			if (snapshot.empty) {
 				res.send({
@@ -199,6 +199,7 @@ app.get('/api/jobs/:id', (req, res) => {
 });
 
 app.get('/api/jobs/:id/applicants', (req, res) => {
+	console.log(req.params.id);
 	let job = db.collection(jobCollection).doc(req.params.id).get()
 		.then(doc => {
 			if (!doc.exists) {
@@ -372,6 +373,20 @@ app.post('/api/jobs/:id/assign', (req, res) => {
 			}
 		]
 	});
+
+	axios
+		.post(
+			GRAPH_API_URL,
+			{
+				"recipient":{
+					"id": req.body.selected_worker_id
+				},
+				"message": {
+					"text": "Congratulations! You were selected for the job! You have to go to the following address"
+				},
+			}
+		)
+		.catch(err => console.log(err));
 });
 
 
@@ -639,6 +654,57 @@ function buildTrainingCarrouselTemplate(data) {
 			}
 		]
 	};
+}
+
+function buildReceipt(recipientId, data) {
+	return {
+		"recipient":{
+			"id": recipientId
+		},
+		"message":{
+			"attachment":{
+				"type":"template",
+				"payload":{
+					"template_type":"receipt",
+					"recipient_name": data.first_name + ' ' + data.last_name,
+					"order_number":"12345678902",
+					"currency":"USD",
+					"payment_method":"Cash",
+					"order_url":"http://petersapparel.parseapp.com/order?order_id=123456",
+					"timestamp": Date.now(),
+					"address":{
+						"street_1":"1 Hacker Way",
+						"street_2":"",
+						"city":"Menlo Park",
+						"postal_code":"94025",
+						"state":"CA",
+						"country":"US"
+					},
+					"summary":{
+						"subtotal": data.price,
+						"total_tax": 0.00,
+						"total_cost": data.price + (data.price * 0.1).toFixed(2)
+					},
+					"adjustments":[
+						{
+							"name": "Insurance",
+							"amount": (data.price * 0.1).toFixed(2)
+						}
+					],
+					"elements":[
+						{
+							"title": data.job_type,
+							"subtitle": data.job_description,
+							"quantity":1,
+							"price": data.price + (data.price * 0.1).toFixed(2),
+							"currency":"USD",
+							"image_url":"https://easyasabt.com/wp-content/uploads/2016/08/plumberone.jpg"
+						}
+					]
+				}
+			}
+		}
+	}
 }
 
 function distance(lat1, lon1, lat2, lon2, unit) {

@@ -96,10 +96,10 @@ function searchGeo(lat, lng) {
 
 // Find jobs
 app.get('/api/jobs', (req, res) => {
-	let data = []
-	let query = searchGeo(req.query.lat, req.query.lng)
+	let data = [];
+	let query = searchGeo(req.query.latitude, req.query.longitud);
 	if(req.query.service) {
-		query = query.where('service_id', '==', req.query.service)
+		query = query.where('service_id', '==', req.query.service_id)
 	}
 	let result = query.get()
 	  .then(snapshot => {
@@ -112,7 +112,44 @@ app.get('/api/jobs', (req, res) => {
 				data.push(doc.data())
 	    });
 
-			res.send(data);
+	    console.log(data);
+
+			//res.send(data);
+			res.json({
+				messages: [
+					{
+						attachment: {
+							type: 'template',
+							payload: {
+								'template_type': 'generic',
+								'image_aspect_ration': 'square',
+								elements: data.map(job => {
+									return {
+										title: `Job Type: ${job.service_id}`,
+										'image_url': job.service_img_url,
+										subtitle: job.description.substring(0, 79),
+										buttons: [
+											{
+												'set_attributes': {
+													"show_issue_details": job.customer_id
+												},
+												"block_names": [ "Show more details" ],
+												type: "show_block",
+												title: "Show More Details"
+											},
+											{
+												"block_names": [ "Contact person" ],
+												type: "show_block",
+												title: "Contact Person"
+											}
+										]
+									}
+								})
+							}
+						}
+					}
+				]
+			});
 			return;
 	  })
 	  .catch(err => {

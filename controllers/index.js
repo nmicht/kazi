@@ -51,10 +51,11 @@ app.post('/api/workers/:id', (req, res) => {
 	res.send('Worker updated');
 });
 
+
 app.get('/api/services', (req, res) => {
 	firebaseHelper.firestore
 		.backup(db, servicesCollection)
-		.then(data => res.status(200).send(data))
+		.then(data => res.send(data))
 });
 
 // Create and update service
@@ -70,7 +71,7 @@ app.get('/api/trainings', (req, res) => {
 		.backup(db, trainingsCollection)
 		.then((data) => {
 			let template = buildTrainingCarrouselTemplate(data.trainings);
-			res.json(template);
+			res.send(template);
 		})
 });
 
@@ -102,7 +103,13 @@ app.get('/api/jobs', (req, res) => {
 	let result = query.get()
 		.then(snapshot => {
 			if (snapshot.empty) {
-				res.status(404).send('We do not have jobs for your criteria');
+				res.send({
+					messages: [
+						{
+							text: 'We do not have jobs for your criteria'
+						}
+					]
+				});
 				return;
 			}
 
@@ -110,15 +117,19 @@ app.get('/api/jobs', (req, res) => {
 				data.push({id: doc.id, ...doc.data()})
 			});
 
-			console.log(data);
-
 			let template = buildJobCarrouselTemplate(data);
-			res.json(template);
+			res.send(template);
 
 		})
 		.catch(err => {
 			console.log('Error getting documents', err);
-			res.status(500).send({error: 'Something failed!'});
+			res.send({
+				messages: [
+					{
+						text: 'Something failed!'
+					}
+				]
+			});
 		});
 });
 
@@ -154,7 +165,9 @@ app.post('/api/jobs', (req, res) => {
 
 	res.json({
 		messages: [
-			{text: `Thank you very much ${first_name}, your job was created successfully. Bye!`}
+			{
+				text: `Thank you very much ${first_name}, your job was created successfully. Bye!`
+			}
 		]
 	});
 });
@@ -162,23 +175,41 @@ app.post('/api/jobs', (req, res) => {
 // Update a job
 app.post('/api/jobs/:id', (req, res) => {
 	let job = db.collection(jobCollection).doc(req.params.id).set(req.body, {merge: true});
-	res.send('Job updated');
+	res.send({
+		messages: [
+			{
+				text: 'The job details were updated!'
+			}
+		]
+	});
 });
 
 app.get('/api/jobs/:id', (req, res) => {
 	let job = db.collection(jobCollection).doc(req.params.id).get()
 		.then(doc => {
 			if (!doc.exists) {
-				res.status(404).send('The job does not exist')
+				res.send({
+					messages: [
+						{
+							text: 'The job does not exist'
+						}
+					]
+				})
 			} else {
 				console.log('Document data:', doc.data());
 				let template = buildJobDetailTemplate(doc.data().d);
-				res.json(template);
+				res.send(template);
 			}
 		})
 		.catch(err => {
 			console.log('Error getting document', err);
-			res.status(500).send({error: 'Something failed!'});
+			res.send({
+				messages: [
+					{
+						text: 'Something failed!'
+					}
+				]
+			});
 		});
 });
 
@@ -187,7 +218,13 @@ app.post('/api/jobs/:jobId/apply/:applicantId', (req, res) => {
 	let job = db.collection(jobCollection).doc(req.params.jobId).get()
 		.then(doc => {
 			if (!doc.exists) {
-				res.status(404).send('The job does not exist')
+				res.send({
+					messages: [
+						{
+							text: 'The job does not exist'
+						}
+					]
+				})
 			} else {
 				let data = {};
 				let applicants = doc.data().d.applicants || [];
@@ -197,12 +234,24 @@ app.post('/api/jobs/:jobId/apply/:applicantId', (req, res) => {
 					applicants,
 				};
 				db.collection(jobCollection).doc(req.params.jobId).set(data, {merge: true});
-				res.send('Applicat added to the job');
+				res.send({
+					messages: [
+						{
+							text: 'Applicant added to the job'
+						}
+					]
+				});
 			}
 		})
 		.catch(err => {
 			console.log('Error getting document', err);
-			res.status(500).send({error: 'Something failed!'});
+			res.send({
+				messages: [
+					{
+						text: 'Something failed!'
+					}
+				]
+			});
 		});
 });
 

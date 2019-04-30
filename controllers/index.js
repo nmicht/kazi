@@ -180,7 +180,7 @@ app.get('/api/jobs/:id', (req, res) => {
 				})
 			} else {
 				console.log('Document data:', doc.data());
-				let template = buildJobDetailTemplate(doc.data().d);
+				let template = buildJobDetailTemplate(doc.data().d, parseFloat(req.query.latitude), parseFloat(req.query.longitude), req.params.id);
 				res.send(template);
 			}
 		})
@@ -245,24 +245,6 @@ app.post('/api/jobs/:id', (req, res) => {
 			}
 		]
 	});
-});
-
-
-app.get('/api/jobs/:id', (req, res) => {
-	let job = db.collection(jobCollection).doc(req.params.id).get()
-		.then(doc => {
-			if (!doc.exists) {
-				res.status(404).send('The job does not exist')
-			} else {
-				console.log('Document data:', doc.data());
-				let template = buildJobDetailTemplate(doc.data().d, parseFloat(req.query.latitude), parseFloat(req.query.longitude), req.params.id);
-				res.json(template);
-			}
-		})
-		.catch(err => {
-			console.log('Error getting document', err);
-			res.status(500).send({error: 'Something failed!'});
-		});
 });
 
 // Add applicants for a job

@@ -498,7 +498,7 @@ function buildJobDetailTemplate(data, lat, long, jobId) {
 		"messages": [
 			{"text": `Job Type: ${data.service_id}`},
 			{"text": `Description: ${data.description}`},
-			{"text": `When: ${data.description}`},
+			{"text": `When: ${data.start_date}`},
 			{"text": `Distance: ${distance(parseFloat(data.coordinates.latitude), parseFloat(data.coordinates.longitude), lat, long).toFixed(2)} miles away`},
 			{"text": `How much?: USD ${data.price}`},
 			{"text": `Employer's rate: ${getStars(data.rating)}`},

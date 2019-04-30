@@ -247,6 +247,24 @@ app.post('/api/jobs/:id', (req, res) => {
 	});
 });
 
+
+app.get('/api/jobs/:id', (req, res) => {
+	let job = db.collection(jobCollection).doc(req.params.id).get()
+		.then(doc => {
+			if (!doc.exists) {
+				res.status(404).send('The job does not exist')
+			} else {
+				console.log('Document data:', doc.data());
+				let template = buildJobDetailTemplate(doc.data().d, parseFloat(req.query.latitude), parseFloat(req.query.longitude), req.params.id);
+				res.json(template);
+			}
+		})
+		.catch(err => {
+			console.log('Error getting document', err);
+			res.status(500).send({error: 'Something failed!'});
+		});
+});
+
 // Add applicants for a job
 app.post('/api/jobs/:jobId/apply/:applicantId', (req, res) => {
 	let job = db.collection(jobCollection).doc(req.params.jobId).get()
@@ -308,8 +326,41 @@ function searchGeo(lat, lng, dist = 1000) {
 	return query;
 }
 
-function buildJobDetailTemplate(data) {
-	return data;
+function buildJobDetailTemplate(data, lat, long, jobId) {
+	console.log(data.coordinates);
+	return {
+		"messages": [
+			{"text": `Job Type: ${data.service_id}`},
+			{"text": `Description: ${data.description}`},
+			{"text": `When: ${data.description}`},
+			{"text": `Distance: ${distance(parseFloat(data.coordinates.latitude), parseFloat(data.coordinates.longitude), lat, long).toFixed(2)} miles away`},
+			{"text": `How much?: USD ${data.price}`},
+			{"text": `Employer's rate: ${getStars(data.rating)}`},
+			{
+				"attachment": {
+					"type": "template",
+					"payload": {
+						"template_type": "button",
+						"text": "Would you like to apply?",
+						"buttons": [
+							{
+								'set_attributes': {
+									"apply_job_id": jobId,
+								},
+								"block_names": ["I want to apply"],
+								type: "show_block",
+								title: "I want to apply"
+							}
+						]
+					}
+				}
+			}
+		]
+	};
+}
+
+function getStars(rating) {
+	return Array(rating).fill('⭐').join(' ');
 }
 
 function buildJobCardWorker(job) {
@@ -422,5 +473,27 @@ function buildTrainingCarrouselTemplate(data) {
 	};
 }
 
+function distance(lat1, lon1, lat2, lon2, unit) {
+	console.log('distance', lat1, lon1, lat2, lon2);
+	if ((lat1 === lat2) && (lon1 === lon2)) {
+		return 0;
+	}
+	else {
+		var radlat1 = Math.PI * lat1/180;
+		var radlat2 = Math.PI * lat2/180;
+		var theta = lon1-lon2;
+		var radtheta = Math.PI * theta/180;
+		var dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+		if (dist > 1) {
+			dist = 1;
+		}
+		dist = Math.acos(dist);
+		dist = dist * 180/Math.PI;
+		dist = dist * 60 * 1.1515;
+		if (unit==="K") { dist = dist * 1.609344 }
+		if (unit==="N") { dist = dist * 0.8684 }
+		return dist;
+	}
+}
 
 app.listen(3000, () => console.log(`Example app listening on port 3000!`));

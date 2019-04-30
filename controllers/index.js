@@ -1,3 +1,4 @@
+const axios = require('axios');
 const admin = require('firebase-admin');
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -30,6 +31,8 @@ const trainingsCollection = 'trainings';
 const imageCollection = 'images';
 const jobCollection = 'jobs';
 
+
+const GRAPH_API_URL = 'https://graph.facebook.com/v2.6/me/messages?access_token=EAAGJhgZAKVvsBAKgb49ZAGQtozo9SZALLdShYy7vM6yjCkYD4kZBnwktHmdQNlCLHZBwcthDTYtkPv1PoikvURLPhl4Xx8YRb7h5PQSChWQUg4z7LJii6kx27BTuaTdpeesjjBAdKnFMZAdbuAB58NScHdIES2dVScTjCa4oj85BGCaYpyJPs6cuMYjEIYOc0ZD';
 
 app.get('/api/workers', (req, res) => {
 	firebaseHelper.firestore
@@ -303,7 +306,20 @@ app.post('/api/jobs/:jobId/apply/:applicantId', (req, res) => {
 						}
 					]
 				});
+				return doc.data().d.customer_id;
 			}
+		})
+		.then((customer_id) => {
+			return axios
+				.post(
+					GRAPH_API_URL,
+					{
+						"recipient":{
+							"id": customer_id
+						},
+						"message":{ "text": "A new person is interested on doing the job you posted" }
+					}
+				);
 		})
 		.catch(err => {
 			console.log('Error getting document', err);

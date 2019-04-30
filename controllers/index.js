@@ -30,9 +30,6 @@ const trainingsCollection = 'trainings';
 const imageCollection = 'images';
 const jobCollection = 'jobs';
 
-app.get("/api", (req, res) => {
-	res.json({test: ""});
-});
 
 app.get('/api/workers', (req, res) => {
 	firebaseHelper.firestore
@@ -66,6 +63,7 @@ app.post('/api/services', (req, res) => {
 	res.send('service created or updated');
 });
 
+
 app.get('/api/trainings', (req, res) => {
 	firebaseHelper.firestore
 		.backup(db, trainingsCollection)
@@ -74,6 +72,7 @@ app.get('/api/trainings', (req, res) => {
 			res.send(template);
 		})
 });
+
 
 app.get('/api/customers', (req, res) => {
 	firebaseHelper.firestore
@@ -88,13 +87,13 @@ app.post('/api/customers', (req, res) => {
 	res.json({response: 'new customer created', new_customer: newCustomer});
 });
 
+
 /**
  * Search for jobs
  * Will always search geolocated using query params for lat and lng
  * Can also receive a query string for service
  */
 app.get('/api/jobs', (req, res) => {
-	console.log(req.query);
 	let data = [];
 	let query = searchGeo(req.query.latitude, req.query.longitude, req.query.radius || undefined);
 	if (req.query.service_id_search && req.query.service_id_search !== 'undefined') {
@@ -123,6 +122,70 @@ app.get('/api/jobs', (req, res) => {
 		})
 		.catch(err => {
 			console.log('Error getting documents', err);
+			res.send({
+				messages: [
+					{
+						text: 'Something failed!'
+					}
+				]
+			});
+		});
+});
+
+app.get('/api/jobs/mine', (req, res) => {
+	let data = []
+	let jobs = geofirestore.collection(jobCollection).where('customer_id', '==', req.query.customer_id).get()
+		.then(snapshot => {
+			if (snapshot.empty) {
+				res.send({
+					messages: [
+						{
+							text: 'There are not jobs created by you.'
+						}
+					]
+				});
+				return;
+			}
+
+			snapshot.forEach(doc => {
+				data.push({id: doc.id, ...doc.data()})
+			});
+
+			let template = buildJobCarrouselTemplate(data, 'customer');
+			res.send(template);
+
+		})
+		.catch(err => {
+			console.log('Error getting documents', err);
+			res.send({
+				messages: [
+					{
+						text: 'Something failed!'
+					}
+				]
+			});
+		});
+});
+
+app.get('/api/jobs/:id', (req, res) => {
+	let job = db.collection(jobCollection).doc(req.params.id).get()
+		.then(doc => {
+			if (!doc.exists) {
+				res.send({
+					messages: [
+						{
+							text: 'The job does not exist'
+						}
+					]
+				})
+			} else {
+				console.log('Document data:', doc.data());
+				let template = buildJobDetailTemplate(doc.data().d);
+				res.send(template);
+			}
+		})
+		.catch(err => {
+			console.log('Error getting document', err);
 			res.send({
 				messages: [
 					{
@@ -184,35 +247,6 @@ app.post('/api/jobs/:id', (req, res) => {
 	});
 });
 
-app.get('/api/jobs/:id', (req, res) => {
-	let job = db.collection(jobCollection).doc(req.params.id).get()
-		.then(doc => {
-			if (!doc.exists) {
-				res.send({
-					messages: [
-						{
-							text: 'The job does not exist'
-						}
-					]
-				})
-			} else {
-				console.log('Document data:', doc.data());
-				let template = buildJobDetailTemplate(doc.data().d);
-				res.send(template);
-			}
-		})
-		.catch(err => {
-			console.log('Error getting document', err);
-			res.send({
-				messages: [
-					{
-						text: 'Something failed!'
-					}
-				]
-			});
-		});
-});
-
 // Add applicants for a job
 app.post('/api/jobs/:jobId/apply/:applicantId', (req, res) => {
 	let job = db.collection(jobCollection).doc(req.params.jobId).get()
@@ -255,12 +289,14 @@ app.post('/api/jobs/:jobId/apply/:applicantId', (req, res) => {
 		});
 });
 
+
 app.post('/api/image', upload.array(), (req, res) => {
 	const newPic = req.body.PICTURE;
 	firebaseHelper.firestore
 		.createNewDocument(db, imageCollection, {url: newPic});
 	res.json({response: 'new image created', new_customer: newPic});
 });
+
 
 function searchGeo(lat, lng, dist = 1000) {
 	const geocollection = geofirestore.collection(jobCollection);
@@ -276,33 +312,67 @@ function buildJobDetailTemplate(data) {
 	return data;
 }
 
-function buildJobCarrouselTemplate(data) {
-	let cards = data.map(job => {
-		return {
-			title: `Job Type: ${job.service_id}`,
-			'image_url': job.service_img_url,
-			subtitle: job.description.substring(0, 79),
-			buttons: [
-				{
-					'set_attributes': {
-						"show_issue_details": job.customer_id,
-						"job_id": job.id
-					},
-					"block_names": ["Show more details"],
-					type: "show_block",
-					title: "Show More Details"
+function buildJobCardWorker(job) {
+	return {
+		title: `Job Type: ${job.service_id}`,
+		'image_url': job.service_img_url,
+		subtitle: job.description.substring(0, 79),
+		buttons: [
+			{
+				'set_attributes': {
+					"show_issue_details": job.customer_id,
+					"job_id": job.id
 				},
-				{
-					'set_attributes': {
-						"job_id": job.id
-					},
-					"block_names": ["I want to apply"],
-					type: "show_block",
-					title: "I want to apply"
-				}
-			]
-		}
-	});
+				"block_names": ["Show more details"],
+				type: "show_block",
+				title: "Show More Details"
+			},
+			{
+				'set_attributes': {
+					"job_id": job.id
+				},
+				"block_names": ["I want to apply"],
+				type: "show_block",
+				title: "I want to apply"
+			}
+		]
+	}
+}
+
+function buildJobCardCustomer(job) {
+	return {
+		title: `Job Type: ${job.service_id}`,
+		'image_url': job.service_img_url,
+		subtitle: job.description.substring(0, 79),
+		buttons: [
+			{
+				'set_attributes': {
+					"show_issue_details": job.customer_id,
+					"job_id": job.id
+				},
+				"block_names": ["Show more details"],
+				type: "show_block",
+				title: "Show More Details"
+			},
+			{
+				'set_attributes': {
+					"job_id": job.id
+				},
+				"block_names": ["Remove job"],
+				type: "show_block",
+				title: "Remove Job"
+			}
+		]
+	}
+}
+
+function buildJobCarrouselTemplate(data, who = 'worker') {
+	let cards = []
+	if(who === 'worker') {
+		cards = data.map(job => buildJobCardWorker(job));
+	} else {
+		cards = data.map(job => buildJobCardCustomer(job));
+	}
 
 	return {
 		messages: [

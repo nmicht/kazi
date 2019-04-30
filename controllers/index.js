@@ -137,7 +137,7 @@ app.get('/api/jobs', (req, res) => {
 
 app.get('/api/jobs/mine', (req, res) => {
 	let data = []
-	let jobs = geofirestore.collection(jobCollection).where('customer_id', '==', req.query.customer_id).get()
+	let jobs = geofirestore.collection(jobCollection).where('customer_id', '==', req.query['messenger user id']).get()
 		.then(snapshot => {
 			if (snapshot.empty) {
 				res.send({
@@ -199,6 +199,7 @@ app.get('/api/jobs/:id', (req, res) => {
 });
 
 app.get('/api/jobs/:id/applicants', (req, res) => {
+	console.log(req.params.id);
 	let job = db.collection(jobCollection).doc(req.params.id).get()
 		.then(doc => {
 			if (!doc.exists) {

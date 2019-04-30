@@ -68,7 +68,10 @@ app.post('/api/services', (req, res) => {
 app.get('/api/trainings', (req, res) => {
 	firebaseHelper.firestore
 		.backup(db, trainingsCollection)
-		.then(data => res.status(200).send(data))
+		.then((data) => {
+			let template = buildTrainingsTemplate(data.trainings)
+			res.json(template);
+		})
 });
 
 app.get('/api/customers', (req, res) => {
@@ -108,7 +111,7 @@ app.get('/api/jobs', (req, res) => {
 
 	    console.log(data);
 
-			let template = buildJobTemplate(data)
+			let template = buildJobsTemplate(data)
 			res.json(template);
 			return;
 	  })
@@ -181,7 +184,30 @@ function searchGeo(lat, lng, dist = 10000) {
 	return query;
 }
 
-function buildJobTemplate(data) {
+function buildJobsTemplate(data) {
+	let cards = data.map(job => {
+		return {
+			title: `Job Type: ${job.service_id}`,
+			'image_url': job.service_img_url,
+			subtitle: job.description.substring(0, 79),
+			buttons: [
+				{
+					'set_attributes': {
+						"show_issue_details": job.customer_id
+					},
+					"block_names": [ "Show more details" ],
+					type: "show_block",
+					title: "Show More Details"
+				},
+				{
+					"block_names": [ "Contact person" ],
+					type: "show_block",
+					title: "Contact Person"
+				}
+			]
+		}
+	})
+
 	return {
 		messages: [
 			{
@@ -190,28 +216,39 @@ function buildJobTemplate(data) {
 					payload: {
 						'template_type': 'generic',
 						'image_aspect_ration': 'square',
-						elements: data.map(job => {
-							return {
-								title: `Job Type: ${job.service_id}`,
-								'image_url': job.service_img_url,
-								subtitle: job.description.substring(0, 79),
-								buttons: [
-									{
-										'set_attributes': {
-											"show_issue_details": job.customer_id
-										},
-										"block_names": [ "Show more details" ],
-										type: "show_block",
-										title: "Show More Details"
-									},
-									{
-										"block_names": [ "Contact person" ],
-										type: "show_block",
-										title: "Contact Person"
-									}
-								]
-							}
-						})
+						elements: cards
+					}
+				}
+			}
+		]
+	};
+}
+
+function buildTrainingsTemplate(data) {
+	let cards = []
+	for(key in data){
+		cards.push({
+			media_type: "image",
+			url: data[key].media_url,
+			buttons: [
+			 {
+					"type": "web_url",
+					"url": data[key].web_url,
+					"title": "View Training",
+			 }
+			]
+		})
+	}
+
+	return {
+		messages: [
+			{
+				attachment: {
+					type: 'template',
+					payload: {
+						'template_type': 'generic',
+						'image_aspect_ration': 'square',
+						elements: cards
 					}
 				}
 			}
